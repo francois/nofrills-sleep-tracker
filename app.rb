@@ -62,3 +62,7 @@ end
 get %r{\A/me/#{UUID_RE}/settings} do |user_id|
   erb :settings
 end
+
+get "/bad" do
+  raise "uncaught exception"
+end
