@@ -1,6 +1,8 @@
 Bundler.require :default, ENV.fetch("RACK_ENV", "development")
 require "json"
 require "logger"
+require "rollbar"
+require "rollbar/middleware/sinatra"
 require "sequel"
 require "sinatra"
 require "sinatra/reloader" if development?
@@ -11,6 +13,8 @@ VALID_EVENT_KEYS = %w(localtime timezone prior_state new_state).map(&:freeze).fr
 configure :development do
  set :port, 4321
 end
+
+use Rollbar::Middleware::Sinatra
 
 configure do
   Rollbar.configure do |config|
