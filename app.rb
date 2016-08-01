@@ -16,6 +16,9 @@ configure do
   Rollbar.configure do |config|
     config.access_token = ENV.fetch("ROLLBAR_ACCESS_TOKEN")
     config.environment  = ENV.fetch("STAGE", "development")
+
+    # Use threaded async reporter
+    config.use_thread
   end
 
   # Connect immediately, ensures database is correctly configured during boot, instead of when clients connect
