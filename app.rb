@@ -26,7 +26,7 @@ def table_name_from_user_id(user_id)
 end
 
 get "/" do
-  erb :home
+  erb :home, layout: :layout
 end
 
 post "/" do
@@ -41,7 +41,7 @@ post "/" do
 end
 
 get %r{\A/me/#{UUID_RE}\z} do |user_id|
-  erb :app
+  erb :app, layout: :layout
 end
 
 post %r{\A/me/#{UUID_RE}\z} do |user_id|
