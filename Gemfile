@@ -1,5 +1,5 @@
 source "https://rubygems.org"
-ruby "2.3.0"
+ruby "2.3.0", engine: "jruby", engine_version: "9.1.2.0"
 
 # If on MRI Ruby
 # gem "pg", "0.17.1", platform: :ruby
