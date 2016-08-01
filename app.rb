@@ -8,14 +8,17 @@ require "sinatra/reloader" if development?
 UUID_RE = /([A-Fa-f0-9]{8}(?:-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12})/.freeze
 VALID_EVENT_KEYS = %w(localtime timezone prior_state new_state).map(&:freeze).freeze
 
-configure do
- # Connect immediately, ensures database is correctly configured during boot, instead of when clients connect
-DB = Sequel.connect(ENV.fetch("DATABASE_URL", "postgresql://vagrant:vagrant@localhost:5432/vagrant"), logger: Logger.new(STDERR))
- DB.run "SELECT version()"
-
- set :server, %i[trinidad thin]
+configure :development do
  set :port, 4321
- set :bind, "0.0.0.0"
+end
+
+configure do
+  # Connect immediately, ensures database is correctly configured during boot, instead of when clients connect
+  DB = Sequel.connect(ENV.fetch("DATABASE_URL", "postgresql://vagrant:vagrant@localhost:5432/vagrant"), logger: Logger.new(STDERR))
+  DB.run "SELECT version()"
+
+  set :server, %i[trinidad thin]
+  set :bind, "0.0.0.0"
 end
 
 def table_name_from_user_id(user_id)
