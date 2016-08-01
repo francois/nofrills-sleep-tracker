@@ -61,7 +61,7 @@ NoFrillsSleepTracker.renderAppSleeping = function(rootNode, store, userId) {
     if (minutes < 2) {
       state.innerHTML = "Just fell asleep...";
     } else {
-      state.innerHTML = "Asleep for " + hours + " hours and " + Math.round(minutes) + " minutes";
+      state.innerHTML = "Asleep for " + hours + " hours and " + Math.round(minutes - 60 * hours) + " minutes";
     }
   }
 
