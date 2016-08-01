@@ -13,6 +13,10 @@ configure :development do
 end
 
 configure do
+  Rollbar.configure do |config|
+    config.access_token = ENV.fetch("ROLLBAR_ACCESS_TOKEN")
+  end
+
   # Connect immediately, ensures database is correctly configured during boot, instead of when clients connect
   DB = Sequel.connect(ENV.fetch("DATABASE_URL", "postgresql://vagrant:vagrant@localhost:5432/vagrant"), logger: Logger.new(STDERR))
   DB.run "SELECT version()"
