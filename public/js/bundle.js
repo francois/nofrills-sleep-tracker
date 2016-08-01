@@ -137,3 +137,19 @@ NoFrillsSleepTracker.renderApp = function(rootNode, store, userId) {
     throw new "ASSERTION ERROR: unknown state " + state + "; expected one of awake, napping or sleeping"
   }
 }
+
+NoFrillsSleepTracker.isLocalStorageSupported = function() {
+  try {
+    localStorage.setItem("test", "test");
+    localStorage.removeItem("test");
+    return true;
+  } catch(e){
+    return false;
+  }
+}
+
+NoFrillsSleepTracker.renderLocalStorageDisabled = function(rootNode) {
+  var p = document.createElement("p");
+  p.innerHTML = "Uh ho... Local Storage is disabled. Are you trying to use this application when in private browsing mode? If so, disable private browsing then refresh this page.";
+  rootNode.appendChild(p);
+}

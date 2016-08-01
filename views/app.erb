@@ -1,14 +1,18 @@
 <div id="app"></div>
 <script type="text/javascript">
-  var userId = document.location.pathname.substring(4);
-  var params = document.location.search.
-                substring(1).
-                split("&").
-                map(function(pair) { return pair.split("=") });
-  for(var i = 0; i < params.length; i++) {
-    var param = params[i];
-    if (params[0] === "timezone") NoFrillsSleepTracker.setTimezone(window.localStorage, param[1]);
-  }
+  if (NoFrillsSleepTracker.isLocalStorageSupported()) {
+    var userId = document.location.pathname.substring(4);
+    var params = document.location.search.
+                  substring(1).
+                  split("&").
+                  map(function(pair) { return pair.split("=") });
+    for(var i = 0; i < params.length; i++) {
+      var param = params[i];
+      if (params[0] === "timezone") NoFrillsSleepTracker.setTimezone(window.localStorage, param[1]);
+    }
 
-  NoFrillsSleepTracker.renderApp(document.getElementById("app"), window.localStorage, userId);
+    NoFrillsSleepTracker.renderApp(document.getElementById("app"), window.localStorage, userId);
+  } else {
+    NoFrillsSleepTracker.renderLocalStorageDisabled(document.getElementById("app"));
+  }
 </script>
