@@ -44,6 +44,7 @@ end
 post "/" do
   user_id = SecureRandom.uuid
   request["rollbar.person_data"] = {id: user_id}
+  Rollbar.info "Creating user", user_id: user_id
   DB.create_table(table_name_from_user_id(user_id)) do
     column :created_at, "timestamp with time zone", null: false, default: Sequel.function(:now)
     column :event_data, "jsonb", null: false
