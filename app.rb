@@ -26,7 +26,7 @@ class RollbarPersonData
 end
 
 UUID_RE = /([A-Fa-f0-9]{8}(?:-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12})/.freeze
-VALID_EVENT_KEYS = %w(localtime timezone prior_state new_state).map(&:freeze).freeze
+VALID_EVENT_KEYS = %w(timezone sleep_type start_at end_at).map(&:freeze).freeze
 
 configure :development do
   set :port, 4321
@@ -73,13 +73,19 @@ end
 
 post "/" do
   user_id = SecureRandom.uuid
-  Rollbar.info "New user", user_id: user_id
+  tz = TZInfo::Timezone.get(params["timezone"]) # Validates the timezone exists
   DB.create_table(table_name_from_user_id(user_id)) do
+    column :timezone, :text, null: false
+    column :start_at, "timestamp with time zone", null: false, index: true
+    column :end_at, "timestamp with time zone", null: false
+    column :sleep_type, :text, null: false
     column :created_at, "timestamp with time zone", null: false, default: Sequel.function(:now)
-    column :event_data, "jsonb", null: false
+
+    constraint :start_lt_end, "start_at < end_at"
+    constraint :sleep_type_in_list, "sleep_type in ('nap', 'night')"
   end
 
-  tz = TZInfo::Timezone.get(params["timezone"])
+  Rollbar.info "New user", user_id: user_id
   redirect "/me/#{user_id}?timezone=#{tz.name}"
 end
 
@@ -88,8 +94,16 @@ get %r{\A/me/#{UUID_RE}\z} do |user_id|
 end
 
 post %r{\A/me/#{UUID_RE}\z} do |user_id|
-  event_data = params.keep_if{|key, _| VALID_EVENT_KEYS.include?(key)}
-  DB[table_name_from_user_id(user_id)].insert(event_data: event_data.to_json)
+  # validate form data
+  tz       = TZInfo::Timezone.get(params.fetch("timezone"))
+  start_at = Time.at(Integer(params.fetch("start_at")) / 1000.0)
+  end_at   = Time.at(Integer(params.fetch("end_at")) / 1000.0)
+  sleep_type = %w(nap night).detect{|value| value == params.fetch("sleep_type")}
+
+  # raise on error
+  halt 400, "Bad Request: unrecognized sleep_type" if sleep_type.nil?
+
+  DB[table_name_from_user_id(user_id)].insert(timezone: tz.name, start_at: start_at, end_at: end_at, sleep_type: sleep_type)
   redirect "/me/#{user_id}"
 end
 

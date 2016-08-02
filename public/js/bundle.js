@@ -19,35 +19,44 @@ NoFrillsSleepTracker.createSubmitButton = function(text) {
   return button;
 }
 
-NoFrillsSleepTracker.renderAppAwake = function(rootNode, store, userId) {
-  var napForm = document.createElement("form");
-  napForm.action = "/me/" + userId;
-  napForm.method = "post";
-  napForm.appendChild(NoFrillsSleepTracker.createHiddenInput("new_state", "napping"));
-  napForm.appendChild(NoFrillsSleepTracker.createHiddenInput("timezone", store.getItem("timezone") || "America/New_York"));
-  napForm.appendChild(NoFrillsSleepTracker.createSubmitButton("Start Napping"));
-  napForm.addEventListener("submit", function(ev) {
-    store.setItem("start-nap-at-epoch", new Date().getTime());
-    store.setItem("state", "napping");
-  });
+NoFrillsSleepTracker.createButton = function(text, clickFn) {
+  var button = document.createElement("button");
+  button.type = "button";
+  button.appendChild(document.createTextNode(text));
+  button.addEventListener("click", clickFn);
+  return button;
+}
 
-  var sleepForm = document.createElement("form");
-  sleepForm.action = "/me/" + userId;
-  sleepForm.method = "post";
-  sleepForm.appendChild(NoFrillsSleepTracker.createHiddenInput("new_state", "sleeping"));
-  sleepForm.appendChild(NoFrillsSleepTracker.createHiddenInput("timezone", store.getItem("timezone") || "America/New_York"));
-  sleepForm.appendChild(NoFrillsSleepTracker.createSubmitButton("Start Sleeping"));
-  sleepForm.addEventListener("submit", function(ev) {
-    store.setItem("start-sleep-at-epoch", new Date().getTime());
-    store.setItem("state", "sleeping");
-  });
+NoFrillsSleepTracker.renderAppAwake = function(rootNode, store, userId) {
+  rootNode.appendChild(NoFrillsSleepTracker.createButton("Start Napping",
+        function(ev) {
+          // prevent form submission
+          ev.preventDefault();
+
+          // change state
+          store.setItem("start-nap-at-epoch", new Date().getTime());
+          store.setItem("state", "napping");
+
+          // rerender the app's UI
+          setTimeout(NoFrillsSleepTracker.renderApp.bind(window, rootNode, store, userId), 0);
+        }));
 
   var separator = document.createElement("p");
   separator.appendChild(document.createTextNode("OR"));
-
-  rootNode.appendChild(napForm);
   rootNode.appendChild(separator);
-  rootNode.appendChild(sleepForm);
+
+  rootNode.appendChild(NoFrillsSleepTracker.createButton("Start Sleeping",
+        function(ev) {
+          // prevent form submission
+          ev.preventDefault();
+
+          // change state
+          store.setItem("start-sleep-at-epoch", new Date().getTime());
+          store.setItem("state", "sleeping");
+
+          // rerender the app's UI
+          setTimeout(NoFrillsSleepTracker.renderApp.bind(window, rootNode, store, userId), 0);
+        }));
 }
 
 NoFrillsSleepTracker.renderAppSleeping = function(rootNode, store, userId) {
@@ -72,11 +81,13 @@ NoFrillsSleepTracker.renderAppSleeping = function(rootNode, store, userId) {
   form.action = "/me/" + userId;
   form.method = "post";
   form.appendChild(NoFrillsSleepTracker.createHiddenInput("timezone", store.getItem("timezone") || "America/New_York"));
-  form.appendChild(NoFrillsSleepTracker.createHiddenInput("new_state", "awake"));
+  form.appendChild(NoFrillsSleepTracker.createHiddenInput("start_at", store.getItem("start-sleep-at-epoch") || new Date().getTime()));
+  form.appendChild(NoFrillsSleepTracker.createHiddenInput("sleep_type", "night"));
   form.addEventListener("submit", function(ev) {
+    clearInterval(timerId);
+    form.appendChild(NoFrillsSleepTracker.createHiddenInput("end_at", new Date().getTime()));
     store.setItem("state", "awake");
     store.removeItem("start-sleep-at-epoch");
-    clearInterval(timerId);
   });
   form.appendChild(state);
   form.appendChild(NoFrillsSleepTracker.createSubmitButton("Wake up!"));
@@ -105,11 +116,13 @@ NoFrillsSleepTracker.renderAppNapping = function(rootNode, store, userId) {
   form.action = "/me/" + userId;
   form.method = "post";
   form.appendChild(NoFrillsSleepTracker.createHiddenInput("timezone", store.getItem("timezone") || "America/New_York"));
-  form.appendChild(NoFrillsSleepTracker.createHiddenInput("new_state", "awake"));
+  form.appendChild(NoFrillsSleepTracker.createHiddenInput("start_at", store.getItem("start-nap-at-epoch") || new Date().getTime()));
+  form.appendChild(NoFrillsSleepTracker.createHiddenInput("sleep_type", "nap"));
   form.addEventListener("submit", function(ev) {
+    clearInterval(timerId);
+    form.appendChild(NoFrillsSleepTracker.createHiddenInput("end_at", new Date().getTime()));
     store.setItem("state", "awake");
     store.removeItem("start-nap-at-epoch");
-    clearInterval(timerId);
   });
   form.appendChild(state);
   form.appendChild(NoFrillsSleepTracker.createSubmitButton("Wake from nap"));
@@ -120,6 +133,8 @@ NoFrillsSleepTracker.renderAppNapping = function(rootNode, store, userId) {
 NoFrillsSleepTracker.renderApp = function(rootNode, store, userId) {
   var timezone = store.getItem("timezone") || "America/New_York";
   var state = store.getItem("state") || "awake";
+
+  rootNode.innerHTML = "";
 
   var stateNode = document.createElement("p");
   stateNode.appendChild(document.createTextNode("Current state: "));
