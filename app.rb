@@ -7,6 +7,24 @@ require "sequel"
 require "sinatra"
 require "sinatra/reloader" if development?
 
+class RollbarPersonData
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    path = Rack::Request.new(env).path_info
+    match = UUID_RE.match(path)
+    if match && match[1] then
+      env["rollbar.person_data"] = { id: match[1] }
+    else
+      env["rollbar.person_data"] = nil
+    end
+
+    @app.call(env)
+  end
+end
+
 UUID_RE = /([A-Fa-f0-9]{8}(?:-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12})/.freeze
 VALID_EVENT_KEYS = %w(localtime timezone prior_state new_state).map(&:freeze).freeze
 
@@ -15,6 +33,7 @@ configure :development do
 end
 
 use Rollbar::Middleware::Sinatra
+use RollbarPersonData
 
 configure do
   Rollbar.configure do |config|
@@ -44,7 +63,6 @@ end
 
 post "/" do
   user_id = SecureRandom.uuid
-  request["rollbar.person_data"] = {id: user_id}
   Rollbar.info "Creating user", user_id: user_id
   DB.create_table(table_name_from_user_id(user_id)) do
     column :created_at, "timestamp with time zone", null: false, default: Sequel.function(:now)
@@ -56,23 +74,19 @@ post "/" do
 end
 
 get %r{\A/me/#{UUID_RE}\z} do |user_id|
-  request["rollbar.person_data"] = {id: user_id}
   erb :app, layout: :layout
 end
 
 post %r{\A/me/#{UUID_RE}\z} do |user_id|
-  request["rollbar.person_data"] = {id: user_id}
   event_data = params.keep_if{|key, _| VALID_EVENT_KEYS.include?(key)}
   DB[table_name_from_user_id(user_id)].insert(event_data: event_data.to_json)
   redirect "/me/#{user_id}"
 end
 
 get %r{\A/me/#{UUID_RE}/analytics} do |user_id|
-  request["rollbar.person_data"] = {id: user_id}
   erb :analytics
 end
 
 get %r{\A/me/#{UUID_RE}/settings} do |user_id|
-  request["rollbar.person_data"] = {id: user_id}
   erb :settings
 end
