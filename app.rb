@@ -55,6 +55,14 @@ configure do
   set :bind, "0.0.0.0"
 end
 
+before do
+  @stage = ENV.fetch("STAGE", "developemnt")
+  @human_stage = case @stage
+                 when "production" ; nil
+                 else " - #{@stage}"
+                 end
+end
+
 def table_name_from_user_id(user_id)
   "events_#{user_id}".tr("-", "_").to_sym
 end
