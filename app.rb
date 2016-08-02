@@ -29,13 +29,13 @@ UUID_RE = /([A-Fa-f0-9]{8}(?:-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12})/.freeze
 VALID_EVENT_KEYS = %w(localtime timezone prior_state new_state).map(&:freeze).freeze
 
 configure :development do
- set :port, 4321
+  set :port, 4321
 end
 
-use Rollbar::Middleware::Sinatra
-use RollbarPersonData
+configure :production do
+  use Rollbar::Middleware::Sinatra
+  use RollbarPersonData
 
-configure do
   Rollbar.configure do |config|
     config.access_token = ENV.fetch("ROLLBAR_ACCESS_TOKEN")
     config.environment  = ENV.fetch("STAGE", "development")
@@ -43,8 +43,10 @@ configure do
 
     # Use threaded async reporter
     config.use_thread
-  end
+  end unless ENV["ROLLBAR_ACCESS_TOKEN"].to_s.empty?
+end
 
+configure do
   # Connect immediately, ensures database is correctly configured during boot, instead of when clients connect
   DB = Sequel.connect(ENV.fetch("DATABASE_URL", "postgresql://vagrant:vagrant@localhost:5432/vagrant"), logger: Logger.new(STDERR))
   DB.run "SELECT version()"
