@@ -70,7 +70,7 @@ NoFrillsSleepTracker.renderAppSleeping = function(rootNode, store, userId) {
     if (minutes < 2) {
       state.innerHTML = "Just fell asleep...";
     } else {
-      state.innerHTML = "Asleep for " + hours + " hours and " + Math.round(minutes - 60 * hours) + " minutes";
+      state.innerHTML = "Asleep for " + hours.toFixed(0) + " hours and " + (minutes - 60 * hours).toFixed(0) + " minutes";
     }
   }
 
@@ -105,7 +105,7 @@ NoFrillsSleepTracker.renderAppNapping = function(rootNode, store, userId) {
     if (minutes < 0.5) {
       state.innerHTML = "Just started napping...";
     } else {
-      state.innerHTML = "Napped for " + minutes.toPrecision(1) + " minutes";
+      state.innerHTML = "Napped for " + minutes.toFixed(1) + " minutes";
     }
   }
 
