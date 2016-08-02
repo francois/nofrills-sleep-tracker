@@ -43,6 +43,7 @@ end
 
 post "/" do
   user_id = SecureRandom.uuid
+  request["rollbar.person_data"] = {id: user_id}
   DB.create_table(table_name_from_user_id(user_id)) do
     column :created_at, "timestamp with time zone", null: false, default: Sequel.function(:now)
     column :event_data, "jsonb", null: false
@@ -53,19 +54,23 @@ post "/" do
 end
 
 get %r{\A/me/#{UUID_RE}\z} do |user_id|
+  request["rollbar.person_data"] = {id: user_id}
   erb :app, layout: :layout
 end
 
 post %r{\A/me/#{UUID_RE}\z} do |user_id|
+  request["rollbar.person_data"] = {id: user_id}
   event_data = params.keep_if{|key, _| VALID_EVENT_KEYS.include?(key)}
   DB[table_name_from_user_id(user_id)].insert(event_data: event_data.to_json)
   redirect "/me/#{user_id}"
 end
 
 get %r{\A/me/#{UUID_RE}/analytics} do |user_id|
+  request["rollbar.person_data"] = {id: user_id}
   erb :analytics
 end
 
 get %r{\A/me/#{UUID_RE}/settings} do |user_id|
+  request["rollbar.person_data"] = {id: user_id}
   erb :settings
 end
