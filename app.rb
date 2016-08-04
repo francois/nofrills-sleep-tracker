@@ -128,6 +128,43 @@ post %r{\A/me/#{UUID_RE}\z} do |user_id|
 end
 
 get %r{\A/me/#{UUID_RE}/analytics} do |user_id|
+  avg_hours_slept_per_weekday_ds = DB[<<-EOSQL, table_name: table_name_from_user_id(user_id)]
+    SELECT
+         dow
+      , sleep_type
+      , avg_utc_duration
+      , 100.0 * avg_utc_duration / sum(avg_utc_duration) OVER (PARTITION BY sleep_type) AS pct_duration
+    FROM (
+        SELECT
+            dow
+          , sleep_type
+          , extract(hour FROM date_trunc('minute', avg(utc_duration))) + (extract(minute FROM date_trunc('minute', avg(utc_duration))) / 60.0) AS avg_utc_duration
+        FROM (
+          SELECT
+              extract(dow FROM (end_at AT TIME ZONE timezone)) dow
+            , sleep_type
+            , end_at - start_at AS utc_duration
+          FROM :table_name) AS t0
+        GROUP BY dow, sleep_type) t0
+  EOSQL
+
+  @avg_hours_slept_per_weekday = avg_hours_slept_per_weekday_ds.to_hash_groups([:dow, :sleep_type])
+  @avg_hours_slept_per_weekday = @avg_hours_slept_per_weekday.map do |key, value|
+    [key, value.first]
+  end.to_h
+
+  hours_slept_histogram_ds = DB[<<-EOSQL, table_name: table_name_from_user_id(user_id)]
+    SELECT sleep_type, extract(hour FROM (end_at - start_at)) AS hour, count(*)
+    FROM :table_name
+    GROUP BY 1, 2
+  EOSQL
+  @hours_slept_histogram = hours_slept_histogram_ds.to_hash_groups([:sleep_type, :hour], :count).map do |key, value|
+    [key, value.first]
+  end.to_h
+  @max_hours = Hash.new
+  @max_hours["night"] = @hours_slept_histogram.select{|k, _| k[0] == "night"}.map(&:last).compact.sort.last.to_f
+  @max_hours["nap"]   = @hours_slept_histogram.select{|k, _| k[0] == "nap"}.map(&:last).compact.sort.last.to_f
+
   erb :analytics
 end
 

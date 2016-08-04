@@ -1,0 +1,50 @@
+<div class="row expanded">
+  <div class="small-12 medium-4 columns">
+
+    <% {"night" => "slept", "nap" => "napped"}.each do |key, verb| %>
+      <table>
+        <caption>Average <%= verb %> hours per day</caption>
+        <thead>
+          <tr>
+            <th>DOW</th>
+            <th>Hours</th>
+            <th width="100%">Graph</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% (0..6).each do |dow| %>
+            <tr>
+              <td><%= %w(Sun Mon Tue Wed Thu Fri Sat)[dow] %></td>
+              <td><%= "%.1f" % @avg_hours_slept_per_weekday.fetch([dow.to_f, key], {}).fetch(:avg_utc_duration, 0.0) %></td>
+              <td>
+                <div class="graph-bar" style="width:<%= "%.1f" % @avg_hours_slept_per_weekday.fetch([dow.to_f, key], {}).fetch(:pct_duration, 0.0) %>%">&nbsp;</div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <table>
+        <caption>Hours <%= verb %> histogram</caption>
+        <thead>
+          <tr>
+            <th>Hours</th>
+            <th>Freq.</th>
+            <th width="100%">Graph</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% (0..23).each do |hour| %>
+            <tr>
+              <td><%= hour %></td>
+              <td><%= @hours_slept_histogram.fetch([key, hour.to_f], "N/A") %></td>
+              <td>
+                <div class="graph-bar" style="width: <%= "%.1f" % [ 100.0 * @hours_slept_histogram.fetch([key, hour.to_f], 0.0) / @max_hours.fetch(key, 1.0) ] %>%">&nbsp;</div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>
