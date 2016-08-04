@@ -105,8 +105,8 @@ get %r{\A/me/#{UUID_RE}\z} do |user_id|
     tz = TZInfo::Timezone.get(row.fetch(:timezone))
     local_start_at = tz.utc_to_local(row.fetch(:start_at))
     local_end_at   = tz.utc_to_local(row.fetch(:end_at))
-    row.merge(local_start_at: {wday: local_start_at.strftime("%A"), date: local_start_at.strftime("%Y-%m-%d"), time: local_start_at.strftime("%H:%M")},
-              local_end_at: {wday: local_end_at.strftime("%A"), date: local_end_at.strftime("%Y-%m-%d"), time: local_end_at.strftime("%H:%M")},
+    row.merge(local_start_at: {wday: local_start_at.strftime("%a"), date: local_start_at.strftime("%Y-%m-%d"), time: local_start_at.strftime("%H:%M")},
+              local_end_at: {wday: local_end_at.strftime("%a"), date: local_end_at.strftime("%Y-%m-%d"), time: local_end_at.strftime("%H:%M")},
               utc_duration: row.fetch(:utc_duration).sub(/:00$/, ""))
   end
 
