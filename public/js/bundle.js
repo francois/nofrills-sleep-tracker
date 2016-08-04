@@ -16,6 +16,7 @@ NoFrillsSleepTracker.createSubmitButton = function(text) {
   var button = document.createElement("button");
   button.type = "submit";
   button.appendChild(document.createTextNode(text));
+  button.className = "button primary";
   return button;
 }
 
@@ -24,6 +25,7 @@ NoFrillsSleepTracker.createButton = function(text, clickFn) {
   button.type = "button";
   button.appendChild(document.createTextNode(text));
   button.addEventListener("click", clickFn);
+  button.className = "button";
   return button;
 }
 
