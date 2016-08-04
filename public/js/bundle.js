@@ -29,8 +29,24 @@ NoFrillsSleepTracker.createButton = function(text, clickFn) {
   return button;
 }
 
-NoFrillsSleepTracker.renderAppAwake = function(rootNode, store, userId) {
-  rootNode.appendChild(NoFrillsSleepTracker.createButton("Start Napping",
+NoFrillsSleepTracker.createRow = function() {
+  var div = document.createElement("div");
+  div.className = "row";
+  return div;
+}
+
+NoFrillsSleepTracker.createColumn = function(size) {
+  var div = document.createElement("div");
+  div.className = size + " columns";
+  return div;
+}
+
+NoFrillsSleepTracker.renderAppAwake = function(rootNode, store, userId, sleepTable) {
+  var row = NoFrillsSleepTracker.createRow();
+  var cell0 = NoFrillsSleepTracker.createColumn("small-5")
+  var cell1 = NoFrillsSleepTracker.createColumn("small-2")
+  var cell2 = NoFrillsSleepTracker.createColumn("small-5")
+  cell0.appendChild(NoFrillsSleepTracker.createButton("Start Napping",
         function(ev) {
           // prevent form submission
           ev.preventDefault();
@@ -43,11 +59,9 @@ NoFrillsSleepTracker.renderAppAwake = function(rootNode, store, userId) {
           setTimeout(NoFrillsSleepTracker.renderApp.bind(window, rootNode, store, userId), 0);
         }));
 
-  var separator = document.createElement("p");
-  separator.appendChild(document.createTextNode("OR"));
-  rootNode.appendChild(separator);
+  cell1.appendChild(document.createTextNode("OR"));
 
-  rootNode.appendChild(NoFrillsSleepTracker.createButton("Start Sleeping",
+  cell2.appendChild(NoFrillsSleepTracker.createButton("Start Sleeping",
         function(ev) {
           // prevent form submission
           ev.preventDefault();
@@ -59,9 +73,15 @@ NoFrillsSleepTracker.renderAppAwake = function(rootNode, store, userId) {
           // rerender the app's UI
           setTimeout(NoFrillsSleepTracker.renderApp.bind(window, rootNode, store, userId), 0);
         }));
+
+  row.appendChild(cell0);
+  row.appendChild(cell1);
+  row.appendChild(cell2);
+  rootNode.appendChild(row);
+  rootNode.appendChild(NoFrillsSleepTracker.renderSleepTable(sleepTable));
 }
 
-NoFrillsSleepTracker.renderAppSleeping = function(rootNode, store, userId) {
+NoFrillsSleepTracker.renderAppSleeping = function(rootNode, store, userId, sleepTable) {
   var state = document.createElement("p");
   state.innerHTML = "";
   var updateState = function() {
@@ -132,7 +152,7 @@ NoFrillsSleepTracker.renderAppNapping = function(rootNode, store, userId) {
   rootNode.appendChild(form);
 }
 
-NoFrillsSleepTracker.renderApp = function(rootNode, store, userId) {
+NoFrillsSleepTracker.renderApp = function(rootNode, store, userId, sleepTable) {
   var timezone = store.getItem("timezone") || "America/New_York";
   var state = store.getItem("state") || "awake";
 
@@ -145,7 +165,7 @@ NoFrillsSleepTracker.renderApp = function(rootNode, store, userId) {
   rootNode.appendChild(stateNode);
 
   if (state === "awake") {
-    NoFrillsSleepTracker.renderAppAwake(rootNode, store, userId);
+    NoFrillsSleepTracker.renderAppAwake(rootNode, store, userId, sleepTable);
   } else if (state === "napping") {
     NoFrillsSleepTracker.renderAppNapping(rootNode, store, userId);
   } else if (state === "sleeping") {
@@ -153,6 +173,50 @@ NoFrillsSleepTracker.renderApp = function(rootNode, store, userId) {
   } else {
     throw new "ASSERTION ERROR: unknown state " + state + "; expected one of awake, napping or sleeping"
   }
+}
+
+NoFrillsSleepTracker.createHeaderCell = function(text) {
+  var cell = document.createElement("th");
+  cell.appendChild(document.createTextNode(text));
+  return cell;
+}
+
+NoFrillsSleepTracker.createBodyCell = function(text) {
+  var cell = document.createElement("td");
+  cell.appendChild(document.createTextNode(text));
+  return cell;
+}
+
+NoFrillsSleepTracker.renderSleepTable = function(sleepTable) {
+  var table = document.createElement("table");
+  table.className = "table";
+
+  var caption = document.createElement("caption");
+  caption.appendChild(document.createTextNode("Most recent sleep events"));
+  var thead = document.createElement("thead");
+  var headerRow = document.createElement("tr");
+  thead.appendChild(headerRow);
+  headerRow.appendChild(NoFrillsSleepTracker.createHeaderCell("Weekday"));
+  headerRow.appendChild(NoFrillsSleepTracker.createHeaderCell("Start"));
+  headerRow.appendChild(NoFrillsSleepTracker.createHeaderCell("Wake"));
+  headerRow.appendChild(NoFrillsSleepTracker.createHeaderCell("Duration"));
+
+  var tbody = document.createElement("tbody");
+
+  for(var i = 0; i < sleepTable.length; i++) {
+    var sleepEvent = sleepTable[i];
+    var bodyRow = document.createElement("tr");
+    bodyRow.appendChild(NoFrillsSleepTracker.createBodyCell(sleepEvent.local_end_at.wday));
+    bodyRow.appendChild(NoFrillsSleepTracker.createBodyCell(sleepEvent.local_start_at.time));
+    bodyRow.appendChild(NoFrillsSleepTracker.createBodyCell(sleepEvent.local_end_at.time));
+    bodyRow.appendChild(NoFrillsSleepTracker.createBodyCell(sleepEvent.utc_duration));
+    tbody.appendChild(bodyRow);
+  }
+
+  table.appendChild(caption);
+  table.appendChild(thead);
+  table.appendChild(tbody);
+  return table;
 }
 
 NoFrillsSleepTracker.isLocalStorageSupported = function() {

@@ -12,7 +12,7 @@ gem "sequel"
 gem "sequel_pg", platform: :ruby, require: false
 gem "sinatra", ">= 1.4.7", "< 2.0"
 gem "sinatra-contrib"
-gem "tz"
+gem "tzinfo", "= 0.3.51", github: "tzinfo/tzinfo", tag: "v0.3.51"
 
 # Threaded JRuby web server
 gem "trinidad"

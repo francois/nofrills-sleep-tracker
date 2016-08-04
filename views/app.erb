@@ -15,7 +15,7 @@
       if (params[0] === "timezone") NoFrillsSleepTracker.setTimezone(window.localStorage, param[1]);
     }
 
-    NoFrillsSleepTracker.renderApp(document.getElementById("app"), window.localStorage, userId);
+    NoFrillsSleepTracker.renderApp(document.getElementById("app"), window.localStorage, userId, <%= @last5.to_json %>);
   } else {
     NoFrillsSleepTracker.renderLocalStorageDisabled(document.getElementById("app"));
   }
