@@ -1,3 +1,22 @@
 .graph-bar {
   background-color: #33c;
 }
+
+.bottom-nav .menu {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+.bottom-nav .menu.reverse {
+  background: #333;
+}
+
+.bottom-nav .menu li {
+  width: 33%;
+  text-align: center;
+}
+
+.bottom-nav .menu.reverse .active {
+  background: #666;
+}

@@ -2,8 +2,9 @@
   <div class="small-12 medium-4 columns">
 
     <% {"night" => "slept", "nap" => "napped"}.each do |key, verb| %>
+      <h1><%= verb.capitalize %></h1>
       <table>
-        <caption>Average <%= verb %> hours per day</caption>
+        <caption>Average hours <%= verb %> per day</caption>
         <thead>
           <tr>
             <th>DOW</th>
@@ -13,6 +14,7 @@
         </thead>
         <tbody>
           <% (0..6).each do |dow| %>
+            <% next unless @avg_hours_slept_per_weekday.fetch([dow.to_f, key], {})[:avg_utc_duration] %>
             <tr>
               <td><%= %w(Sun Mon Tue Wed Thu Fri Sat)[dow] %></td>
               <td><%= "%.1f" % @avg_hours_slept_per_weekday.fetch([dow.to_f, key], {}).fetch(:avg_utc_duration, 0.0) %></td>
@@ -35,6 +37,7 @@
         </thead>
         <tbody>
           <% (0..23).each do |hour| %>
+            <% next unless @hours_slept_histogram[[key, hour.to_f]] %></td>
             <tr>
               <td><%= hour %></td>
               <td><%= @hours_slept_histogram.fetch([key, hour.to_f], "N/A") %></td>

@@ -110,6 +110,8 @@ get %r{\A/me/#{UUID_RE}\z} do |user_id|
               utc_duration: row.fetch(:utc_duration).sub(/:00$/, ""))
   end
 
+  @user_id = user_id
+  @app = :app
   erb :app, layout: :layout
 end
 
@@ -165,9 +167,13 @@ get %r{\A/me/#{UUID_RE}/analytics} do |user_id|
   @max_hours["night"] = @hours_slept_histogram.select{|k, _| k[0] == "night"}.map(&:last).compact.sort.last.to_f
   @max_hours["nap"]   = @hours_slept_histogram.select{|k, _| k[0] == "nap"}.map(&:last).compact.sort.last.to_f
 
+  @user_id = user_id
+  @app = :analytics
   erb :analytics
 end
 
 get %r{\A/me/#{UUID_RE}/settings} do |user_id|
+  @user_id = user_id
+  @app = :settings
   erb :settings
 end

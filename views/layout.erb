@@ -13,5 +13,16 @@
   </head>
   <body>
     <%= yield %>
+    <% if @user_id %>
+      <div class="expanded row small-collapse bottom-nav">
+        <div class="small-12 columns">
+          <ul class="menu reverse">
+            <li<%= " class=\"active\"" if @app == :app       %>><a href="/me/<%= @user_id %>">app</a></li>
+            <li<%= " class=\"active\"" if @app == :analytics %>><a href="/me/<%= @user_id %>/analytics">analytics</a></li>
+            <li<%= " class=\"active\"" if @app == :settings  %>><a href="/me/<%= @user_id %>/settings">settings</a></li>
+          </ul>
+        </div>
+      </div>
+    <% end %>
   </body>
 </html>
