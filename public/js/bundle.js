@@ -158,11 +158,9 @@ NoFrillsSleepTracker.renderApp = function(rootNode, store, userId, sleepTable) {
 
   rootNode.innerHTML = "";
 
-  var stateNode = document.createElement("p");
-  stateNode.appendChild(document.createTextNode("Current state: "));
-  stateNode.appendChild(document.createTextNode(state));
-  stateNode.appendChild(document.createTextNode("."));
-  rootNode.appendChild(stateNode);
+  var header = document.createElement("h1");
+  header.appendChild(document.createTextNode("Prepare to sleep"));
+  rootNode.appendChild(header);
 
   if (state === "awake") {
     NoFrillsSleepTracker.renderAppAwake(rootNode, store, userId, sleepTable);
