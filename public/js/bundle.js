@@ -194,7 +194,7 @@ NoFrillsSleepTracker.renderSleepTable = function(sleepTable) {
   var thead = document.createElement("thead");
   var headerRow = document.createElement("tr");
   thead.appendChild(headerRow);
-  headerRow.appendChild(NoFrillsSleepTracker.createHeaderCell("Weekday"));
+  headerRow.appendChild(NoFrillsSleepTracker.createHeaderCell("DoW"));
   headerRow.appendChild(NoFrillsSleepTracker.createHeaderCell("Start"));
   headerRow.appendChild(NoFrillsSleepTracker.createHeaderCell("Wake"));
   headerRow.appendChild(NoFrillsSleepTracker.createHeaderCell("Duration"));
