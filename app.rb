@@ -112,6 +112,7 @@ get %r{\A/me/#{UUID_RE}\z} do |user_id|
 
   @user_id = user_id
   @app = :app
+  @wakeup = params[:wakeup] == "1"
   erb :app, layout: :layout
 end
 
@@ -126,7 +127,7 @@ post %r{\A/me/#{UUID_RE}\z} do |user_id|
   halt 400, "Bad Request: unrecognized sleep_type" if sleep_type.nil?
 
   DB[table_name_from_user_id(user_id)].insert(timezone: tz.name, start_at: start_at, end_at: end_at, sleep_type: sleep_type)
-  redirect "/me/#{user_id}"
+  redirect "/me/#{user_id}?wakeup=1"
 end
 
 get %r{\A/me/#{UUID_RE}/analytics} do |user_id|

@@ -15,6 +15,14 @@
       if (params[0] === "timezone") NoFrillsSleepTracker.setTimezone(window.localStorage, param[1]);
     }
 
+    if (<%= @wakeup %>) {
+      // Reset state when the server tells us to do so
+      // Since we don't do 2 phase commit, or use an Ajax request to change the server's state,
+      // we have to wait until the server acknowledges the state change before resetting our
+      // localStorage state.
+      NoFrillsSleepTracker.wakeUp(window.localStorage);
+    }
+
     NoFrillsSleepTracker.renderApp(document.getElementById("app"), window.localStorage, userId, <%= @last5.to_json %>);
   } else {
     NoFrillsSleepTracker.renderLocalStorageDisabled(document.getElementById("app"));

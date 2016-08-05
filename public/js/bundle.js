@@ -55,6 +55,9 @@ NoFrillsSleepTracker.renderAppAwake = function(rootNode, store, userId, sleepTab
           store.setItem("start-nap-at-epoch", new Date().getTime());
           store.setItem("state", "napping");
 
+          // remove any pending "wakeup=1" param from the URL
+          history.pushState(null, "", document.location.pathname);
+
           // rerender the app's UI
           setTimeout(NoFrillsSleepTracker.renderApp.bind(window, rootNode, store, userId), 0);
         }));
@@ -69,6 +72,9 @@ NoFrillsSleepTracker.renderAppAwake = function(rootNode, store, userId, sleepTab
           // change state
           store.setItem("start-sleep-at-epoch", new Date().getTime());
           store.setItem("state", "sleeping");
+
+          // remove any pending "wakeup=1" param from the URL
+          history.pushState(null, "", document.location.pathname);
 
           // rerender the app's UI
           setTimeout(NoFrillsSleepTracker.renderApp.bind(window, rootNode, store, userId), 0);
@@ -108,8 +114,6 @@ NoFrillsSleepTracker.renderAppSleeping = function(rootNode, store, userId, sleep
   form.addEventListener("submit", function(ev) {
     clearInterval(timerId);
     form.appendChild(NoFrillsSleepTracker.createHiddenInput("end_at", new Date().getTime()));
-    store.setItem("state", "awake");
-    store.removeItem("start-sleep-at-epoch");
   });
   form.appendChild(state);
   form.appendChild(NoFrillsSleepTracker.createSubmitButton("Wake up!"));
@@ -143,13 +147,17 @@ NoFrillsSleepTracker.renderAppNapping = function(rootNode, store, userId) {
   form.addEventListener("submit", function(ev) {
     clearInterval(timerId);
     form.appendChild(NoFrillsSleepTracker.createHiddenInput("end_at", new Date().getTime()));
-    store.setItem("state", "awake");
-    store.removeItem("start-nap-at-epoch");
   });
   form.appendChild(state);
   form.appendChild(NoFrillsSleepTracker.createSubmitButton("Wake from nap"));
 
   rootNode.appendChild(form);
+}
+
+NoFrillsSleepTracker.wakeUp = function(store) {
+  store.setItem("state", "awake");
+  store.removeItem("start-nap-at-epoch");
+  store.removeItem("start-sleep-at-epoch");
 }
 
 NoFrillsSleepTracker.renderApp = function(rootNode, store, userId, sleepTable) {
