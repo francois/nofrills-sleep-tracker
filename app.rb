@@ -141,7 +141,7 @@ get %r{\A/me/#{UUID_RE}/analytics} do |user_id|
         SELECT
             dow
           , sleep_type
-          , extract(hour FROM date_trunc('minute', avg(utc_duration))) + (extract(minute FROM date_trunc('minute', avg(utc_duration))) / 60.0) AS avg_utc_duration
+          , round((extract(hour FROM date_trunc('minute', avg(utc_duration))) + (extract(minute FROM date_trunc('minute', avg(utc_duration))) / 60.0))::numeric, 1) AS avg_utc_duration
         FROM (
           SELECT
               extract(dow FROM (end_at AT TIME ZONE timezone)) dow
@@ -149,6 +149,7 @@ get %r{\A/me/#{UUID_RE}/analytics} do |user_id|
             , end_at - start_at AS utc_duration
           FROM :table_name) AS t0
         GROUP BY dow, sleep_type) t0
+    WHERE avg_utc_duration > 0.0
   EOSQL
 
   @avg_hours_slept_per_weekday = avg_hours_slept_per_weekday_ds.to_hash_groups([:dow, :sleep_type])
@@ -157,7 +158,10 @@ get %r{\A/me/#{UUID_RE}/analytics} do |user_id|
   end.to_h
 
   hours_slept_histogram_ds = DB[<<-EOSQL, table_name: table_name_from_user_id(user_id)]
-    SELECT sleep_type, extract(hour FROM (end_at - start_at)) AS hour, count(*)
+    SELECT
+        sleep_type
+      , round((extract(hour FROM date_trunc('minute', end_at - start_at)) + (extract(minute FROM date_trunc('minute', end_at - start_at)) / 60.0))::numeric, 0) AS hour
+      , count(*)
     FROM :table_name
     GROUP BY 1, 2
   EOSQL
