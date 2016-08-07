@@ -1,0 +1,37 @@
+<div class="row">
+  <div class="small-12 medium-4 medium-offset-4 columns">
+    <h1>Edit event</h2>
+
+    <form method="post" action="/me/<%= @user_id %>/<%= @event.fetch(:event_id) %>">
+      <input type="hidden" name="_method" value="put">
+      <label>Timezone
+        <select name="timezone">
+          <option <%= :selected if @event.fetch(:timezone) == "America/New_York" %> value="America/New_York">New York</option>
+          <option <%= :selected if @event.fetch(:timezone) == "America/Los_Angeles" %> value="America/Los_Angeles">Los Angeles</option>
+        </select>
+      </label>
+
+      <label>Start at
+        <input type="text" name="local_start_at" value="<%= @event.fetch(:local_start_at).strftime("%Y-%m-%d %H:%M") %>">
+      </label>
+
+      <label>End at
+        <input type="text" name="local_end_at" value="<%= @event.fetch(:local_end_at).strftime("%Y-%m-%d %H:%M") %>">
+      </label>
+
+      <label>Sleep type
+        <select name="sleep_type">
+          <option <%= :selected if @event.fetch(:sleep_type) == "nap"   %> value="nap"  >Nap</option>
+          <option <%= :selected if @event.fetch(:sleep_type) == "night" %> value="night">Night</option>
+        </select>
+      </label>
+
+      <button type="submit" class="button primary save">Save</button>
+    </form>
+
+    <form method="post" action="/me/<%= @user_id %>/<%= @event.fetch(:event_id) %>">
+      <input type="hidden" name="_method" value="delete">
+      <button type="submit" class="button alert">Delete</button>
+    </form>
+  </div>
+</div>

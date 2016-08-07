@@ -35,6 +35,7 @@ end
 configure :production do
   use Rollbar::Middleware::Sinatra
   use RollbarPersonData
+  enable :method_override
 
   Rollbar.configure do |config|
     config.access_token = ENV.fetch("ROLLBAR_ACCESS_TOKEN")
@@ -75,12 +76,14 @@ post "/" do
   user_id = SecureRandom.uuid
   tz = TZInfo::Timezone.get(params["timezone"]) # Validates the timezone exists
   DB.create_table(table_name_from_user_id(user_id)) do
+    column :event_id, :uuid, null: false
     column :timezone, :text, null: false
     column :start_at, "timestamp with time zone", null: false, index: true
     column :end_at, "timestamp with time zone", null: false
     column :sleep_type, :text, null: false
     column :created_at, "timestamp with time zone", null: false, default: Sequel.function(:now)
 
+    primary_key [:event_id]
     constraint :start_lt_end, "start_at < end_at"
     constraint :sleep_type_in_list, "sleep_type in ('nap', 'night')"
   end
@@ -92,6 +95,7 @@ end
 get %r{\A/me/#{UUID_RE}\z} do |user_id|
   @last5 = DB[table_name_from_user_id(user_id)].
     select(
+      :event_id,
       :sleep_type,
       :timezone,
       :start_at,
@@ -126,7 +130,7 @@ post %r{\A/me/#{UUID_RE}\z} do |user_id|
   # raise on error
   halt 400, "Bad Request: unrecognized sleep_type" if sleep_type.nil?
 
-  DB[table_name_from_user_id(user_id)].insert(timezone: tz.name, start_at: start_at, end_at: end_at, sleep_type: sleep_type)
+  DB[table_name_from_user_id(user_id)].insert(event_id: SecureRandom.uuid, timezone: tz.name, start_at: start_at, end_at: end_at, sleep_type: sleep_type)
   redirect "/me/#{user_id}?wakeup=1"
 end
 
@@ -181,4 +185,34 @@ get %r{\A/me/#{UUID_RE}/settings} do |user_id|
   @user_id = user_id
   @app = :settings
   erb :settings
+end
+
+get %r{\A/me/#{UUID_RE}/#{UUID_RE}} do |user_id, event_id|
+  @user_id = user_id
+  @event = DB[table_name_from_user_id(user_id)].filter(event_id: event_id).first!
+  tz = TZInfo::Timezone.get(@event.fetch(:timezone))
+  @event = @event.merge(
+    local_start_at: tz.utc_to_local(@event.fetch(:start_at)),
+    local_end_at: tz.utc_to_local(@event.fetch(:end_at)))
+  @app = :app
+  erb :edit
+end
+
+put %r{\A/me/#{UUID_RE}/#{UUID_RE}} do |user_id, event_id|
+  tz       = TZInfo::Timezone.get(params.fetch("timezone"))
+  sleep_type = %w(nap night).detect{|value| value == params.fetch("sleep_type")}
+  local_start_at = Time.parse(params.fetch("local_start_at"))
+  local_end_at   = Time.parse(params.fetch("local_end_at"))
+
+  DB[table_name_from_user_id(user_id)].filter(event_id: event_id).update(
+    timezone: tz.name,
+    sleep_type: sleep_type,
+    start_at: tz.local_to_utc(local_start_at),
+    end_at: tz.local_to_utc(local_end_at))
+  redirect "/me/#{user_id}"
+end
+
+delete %r{\A/me/#{UUID_RE}/#{UUID_RE}} do |user_id, event_id|
+  DB[table_name_from_user_id(user_id)].filter(event_id: event_id).delete
+  redirect "/me/#{user_id}"
 end

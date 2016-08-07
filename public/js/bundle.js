@@ -200,9 +200,14 @@ NoFrillsSleepTracker.createHeaderCell = function(text) {
   return cell;
 }
 
-NoFrillsSleepTracker.createBodyCell = function(text) {
+NoFrillsSleepTracker.createBodyCell = function(textOrHTMLNode) {
   var cell = document.createElement("td");
-  cell.appendChild(document.createTextNode(text));
+  if (typeof textOrHTMLNode === "object" && "appendChild" in textOrHTMLNode) {
+    // we presume this is a DOM node
+    cell.appendChild(textOrHTMLNode);
+  } else {
+    cell.appendChild(document.createTextNode(textOrHTMLNode));
+  }
   return cell;
 }
 
@@ -228,7 +233,7 @@ NoFrillsSleepTracker.renderSleepTable = function(sleepTable) {
     bodyRow.appendChild(NoFrillsSleepTracker.createBodyCell(sleepEvent.local_end_at.wday));
     bodyRow.appendChild(NoFrillsSleepTracker.createBodyCell(sleepEvent.local_start_at.time));
     bodyRow.appendChild(NoFrillsSleepTracker.createBodyCell(sleepEvent.local_end_at.time));
-    bodyRow.appendChild(NoFrillsSleepTracker.createBodyCell(sleepEvent.utc_duration));
+    bodyRow.appendChild(NoFrillsSleepTracker.createBodyCell(NoFrillsSleepTracker.createLink(sleepEvent.utc_duration, "/me/" + userId + "/" + sleepEvent.event_id)));
     tbody.appendChild(bodyRow);
   }
 
@@ -236,6 +241,13 @@ NoFrillsSleepTracker.renderSleepTable = function(sleepTable) {
   table.appendChild(thead);
   table.appendChild(tbody);
   return table;
+}
+
+NoFrillsSleepTracker.createLink = function(label, href) {
+  var anchor = document.createElement("a");
+  anchor.appendChild(document.createTextNode(label));
+  anchor.href = href;
+  return anchor;
 }
 
 NoFrillsSleepTracker.isLocalStorageSupported = function() {
