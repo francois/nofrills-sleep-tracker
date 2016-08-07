@@ -117,6 +117,8 @@ NoFrillsSleepTracker.renderAppSleeping = function(rootNode, store, userId, sleep
   });
   form.appendChild(state);
   form.appendChild(NoFrillsSleepTracker.createSubmitButton("Wake up!"));
+  form.appendChild(document.createTextNode(" or "));
+  form.appendChild(NoFrillsSleepTracker.createCancelLink("Cancel", "/me/" + userId + "?wakeup=1"));
 
   rootNode.appendChild(form);
 }
@@ -150,8 +152,19 @@ NoFrillsSleepTracker.renderAppNapping = function(rootNode, store, userId) {
   });
   form.appendChild(state);
   form.appendChild(NoFrillsSleepTracker.createSubmitButton("Wake from nap"));
+  form.appendChild(document.createTextNode(" or "));
+  form.appendChild(NoFrillsSleepTracker.createCancelLink("Cancel", "/me/" + userId + "?wakeup=1"));
 
   rootNode.appendChild(form);
+}
+
+NoFrillsSleepTracker.createCancelLink = function(label, href, fn) {
+  var a = document.createElement("a");
+  a.className = "button secondary";
+  a.href = href;
+  a.appendChild(document.createTextNode(label));
+  if (typeof fn === "function") a.addEventListener("click", fn);
+  return a;
 }
 
 NoFrillsSleepTracker.wakeUp = function(store) {
