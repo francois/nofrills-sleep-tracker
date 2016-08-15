@@ -6,8 +6,9 @@
       <input type="hidden" name="_method" value="put">
       <label>Timezone
         <select name="timezone">
-          <option <%= :selected if @event.fetch(:timezone) == "America/New_York" %> value="America/New_York">New York</option>
-          <option <%= :selected if @event.fetch(:timezone) == "America/Los_Angeles" %> value="America/Los_Angeles">Los Angeles</option>
+          <% TZInfo::Timezone.all.each do |tz| %>
+            <option <%= :selected if @event.fetch(:timezone) == tz.name %> value="<%= tz.name %>"><%= tz %></option>
+          <% end %>
         </select>
       </label>
 
