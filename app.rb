@@ -170,7 +170,7 @@ get %r{\A/me/#{UUID_RE}/analytics} do |user_id|
     GROUP BY 1, 2
   EOSQL
   @hours_slept_histogram = hours_slept_histogram_ds.to_hash_groups([:sleep_type, :hour], :count).map do |key, value|
-    [key, value.first]
+    [[key.first, key.last.to_f], value.first.to_f]
   end.to_h
   @max_hours = Hash.new
   @max_hours["night"] = @hours_slept_histogram.select{|k, _| k[0] == "night"}.map(&:last).compact.sort.last.to_f
