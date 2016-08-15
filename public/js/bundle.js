@@ -84,7 +84,17 @@ NoFrillsSleepTracker.renderAppAwake = function(rootNode, store, userId, sleepTab
   row.appendChild(cell1);
   row.appendChild(cell2);
   rootNode.appendChild(row);
+  if (sleepTable.every(function(el) { return el.utc_duration <= "00h05m"})) {
+    rootNode.appendChild(NoFrillsSleepTracker.renderBookmarkPrompt());
+  }
+
   rootNode.appendChild(NoFrillsSleepTracker.renderSleepTable(sleepTable));
+}
+
+NoFrillsSleepTracker.renderBookmarkPrompt = function() {
+  var p = document.createElement("p");
+  p.appendChild(document.createTextNode("Bookmark this page, either on your Home Screen or as a simple bookmark, to remember your personal tracker. There is no way to recover this page if you lose it."));
+  return p;
 }
 
 NoFrillsSleepTracker.renderAppSleeping = function(rootNode, store, userId, sleepTable) {
