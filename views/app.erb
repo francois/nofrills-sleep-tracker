@@ -12,7 +12,7 @@
                   map(function(pair) { return pair.split("=") });
     for(var i = 0; i < params.length; i++) {
       var param = params[i];
-      if (params[0] === "timezone") NoFrillsSleepTracker.setTimezone(window.localStorage, param[1]);
+      if (param[0] === "timezone") NoFrillsSleepTracker.setTimezone(window.localStorage, param[1]);
     }
 
     if (<%= @wakeup %>) {
