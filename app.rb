@@ -69,6 +69,7 @@ def table_name_from_user_id(user_id)
 end
 
 get "/" do
+  cache_control :public, max_age: 600
   erb :home, layout: :layout
 end
 
@@ -93,6 +94,8 @@ post "/" do
 end
 
 get %r{\A/me/#{UUID_RE}\z} do |user_id|
+  last_modified DB[table_name_from_user_id(user_id)].max(:start_at)
+
   @last5 = DB[table_name_from_user_id(user_id)].
     select(
       :event_id,
@@ -117,6 +120,8 @@ get %r{\A/me/#{UUID_RE}\z} do |user_id|
   @user_id = user_id
   @app = :app
   @wakeup = params[:wakeup] == "1"
+
+  cache_control :private, max_age: 60
   erb :app, layout: :layout
 end
 
@@ -135,6 +140,8 @@ post %r{\A/me/#{UUID_RE}\z} do |user_id|
 end
 
 get %r{\A/me/#{UUID_RE}/analytics} do |user_id|
+  last_modified DB[table_name_from_user_id(user_id)].max(:start_at)
+
   avg_hours_slept_per_weekday_ds = DB[<<-EOSQL, table_name: table_name_from_user_id(user_id)]
     SELECT
          dow
@@ -178,12 +185,16 @@ get %r{\A/me/#{UUID_RE}/analytics} do |user_id|
 
   @user_id = user_id
   @app = :analytics
+
+  cache_control :private, max_age: 60
   erb :analytics
 end
 
 get %r{\A/me/#{UUID_RE}/settings} do |user_id|
   @user_id = user_id
   @app = :settings
+
+  cache_control :private, :must_revalidate, max_age: 60
   erb :settings
 end
 
@@ -195,6 +206,8 @@ get %r{\A/me/#{UUID_RE}/#{UUID_RE}} do |user_id, event_id|
     local_start_at: tz.utc_to_local(@event.fetch(:start_at)),
     local_end_at: tz.utc_to_local(@event.fetch(:end_at)))
   @app = :app
+
+  cache_control :no_cache, :no_store, :must_revalidate
   erb :edit
 end
 
