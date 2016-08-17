@@ -39,7 +39,7 @@
           <% (0..23).each do |hour| %>
             <% next unless @hours_slept_histogram[[key, hour.to_f]] %></td>
             <tr>
-              <td><%= hour %></td>
+              <td><%= hour %> - <%= hour + 1 %></td>
               <td><%= @hours_slept_histogram.fetch([key, hour.to_f], "N/A") %></td>
               <td>
                 <div class="graph-bar" style="width: <%= "%.1f" % [ 100.0 * @hours_slept_histogram.fetch([key, hour.to_f], 0.0) / @max_hours.fetch(key, 1.0) ] %>%">&nbsp;</div>

@@ -185,11 +185,11 @@ get %r{\A/me/#{UUID_RE}/analytics} do |user_id|
     GROUP BY 1, 2
   EOSQL
   @hours_slept_histogram = hours_slept_histogram_ds.to_hash_groups([:sleep_type, :hour], :count).map do |key, value|
-    [[key.first, key.last.to_f], value.first.to_f]
+    [[key.first, key.last.to_f], value.first]
   end.to_h
   @max_hours = Hash.new
-  @max_hours["night"] = @hours_slept_histogram.select{|k, _| k[0] == "night"}.map(&:last).compact.sort.last.to_f
-  @max_hours["nap"]   = @hours_slept_histogram.select{|k, _| k[0] == "nap"}.map(&:last).compact.sort.last.to_f
+  @max_hours["night"] = @hours_slept_histogram.select{|k, _| k[0] == "night"}.map(&:last).compact.sort.last
+  @max_hours["nap"]   = @hours_slept_histogram.select{|k, _| k[0] == "nap"}.map(&:last).compact.sort.last
 
   @user_id = user_id
   @app = :analytics
