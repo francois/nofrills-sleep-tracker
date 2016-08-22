@@ -30,10 +30,6 @@ VALID_EVENT_KEYS = %w(timezone sleep_type start_at end_at).map(&:freeze).freeze
 
 configure :development do
   set :port, 4321
-
-  def set_last_modified(user_id)
-    # NOP, no last_modified or cache_control in development
-  end
 end
 
 configure :production do
@@ -49,11 +45,6 @@ configure :production do
     # Use threaded async reporter
     config.use_thread
   end unless ENV["ROLLBAR_ACCESS_TOKEN"].to_s.empty?
-
-  def set_last_modified(user_id)
-    last_modified DB[table_name_from_user_id(user_id)].max(:start_at)
-    cache_control :private, max_age: 60
-  end
 end
 
 configure do
@@ -73,12 +64,19 @@ before do
                  end
 end
 
+before do
+  unless request.path_info == "/" then
+    # 99% of pages must not be cached: only the home page should be
+    cache_control :no_cache, :no_store, :must_revalidate, max_age: 0 unless @stage == "development"
+  end
+end
+
 def table_name_from_user_id(user_id)
   "events_#{user_id}".tr("-", "_").to_sym
 end
 
 get "/" do
-  cache_control :public, max_age: 600 if @stage == "production"
+  cache_control :public, max_age: 3600 if @stage == "production"
   erb :home, layout: :layout
 end
 
@@ -103,8 +101,6 @@ post "/" do
 end
 
 get %r{\A/me/#{UUID_RE}\z} do |user_id|
-  set_last_modified user_id
-
   @last5 = DB[table_name_from_user_id(user_id)].
     select(
       :event_id,
@@ -148,8 +144,6 @@ post %r{\A/me/#{UUID_RE}\z} do |user_id|
 end
 
 get %r{\A/me/#{UUID_RE}/analytics} do |user_id|
-  set_last_modified user_id
-
   avg_hours_slept_per_weekday_ds = DB[<<-EOSQL, table_name: table_name_from_user_id(user_id)]
     SELECT
          dow
@@ -201,7 +195,6 @@ get %r{\A/me/#{UUID_RE}/settings} do |user_id|
   @user_id = user_id
   @app = :settings
 
-  cache_control :private, :must_revalidate, max_age: 60 if @stage == "production"
   erb :settings
 end
 
@@ -214,7 +207,6 @@ get %r{\A/me/#{UUID_RE}/#{UUID_RE}} do |user_id, event_id|
     local_end_at: tz.utc_to_local(@event.fetch(:end_at)))
   @app = :app
 
-  cache_control :no_cache, :no_store, :must_revalidate if @stage == "production"
   erb :edit
 end
 
