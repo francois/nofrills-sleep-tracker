@@ -1,7 +1,17 @@
 <div class="row expanded">
   <div class="small-12 medium-4 medium-offset-4 columns">
     <h1>Settings</h1>
-    <p>Well, this isn't implemented yet&hellip; how embarassing!</p>
+    <form id="form" method="get" action="#">
+      <label>Set your default timezone:
+        <select id="timezone">
+          <% TZInfo::Timezone.all.each do |tz| %>
+            <option data-offset="<%= tz.current_time_and_period.last.utc_total_offset / -60 %>" value="<%= tz.name %>"><%= tz %></option>
+          <% end %>
+        </select>
+      </label>
+
+      <button class="button primary" type="submit">Save</button>
+    </form>
 
     <h1>About</h1>
     <p>This software was built as a reaction to ad-driven software, with unnecessary bells &amp; whistles.</p>
@@ -9,3 +19,27 @@
     <p>Please find this application on GitHub at <a href="https://github.com/francois/nofrills-sleep-tracker">francois/nofrills-sleep-tracker</a>.
   </div>
 </div>
+<script type="text/javascript">
+var tz = document.getElementById("timezone");
+var timezone = window.localStorage.getItem("timezone") || "America/New_York";
+for (var child = tz.firstChild; child; child = child.nextSibling) {
+  if (child.nodeName === "OPTION") {
+    if (child.getAttribute("value") === timezone) {
+      child.selected = true;
+      break;
+    }
+  }
+}
+
+var form = document.getElementById("form");
+form.addEventListener("submit", function(ev) {
+  var option = tz.selectedOptions.item(0);
+  if (option) {
+    window.localStorage.setItem("timezone", option.value);
+    var button = form.querySelector("button");
+    var saved = document.createElement("p");
+    saved.appendChild(document.createTextNode("Timezone saved!"));
+    form.insertBefore(saved, button);
+  }
+});
+</script>
