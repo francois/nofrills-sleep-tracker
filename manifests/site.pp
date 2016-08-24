@@ -85,46 +85,6 @@ exec{'use-zsh':
   ],
 }
 
-exec{'/usr/bin/cpan -i -f -T App::Sqitch DBD::Pg TAP::Parser::SourceHandler::pgTAP':
-  user    => 'francois',
-  creates => '/home/francois/perl5/bin/sqitch',
-  require => [
-    Exec['/usr/bin/apt-get update'],
-    User['francois'],
-  ],
-}
-
-exec{'download pgxn client':
-  command => '/usr/bin/wget -O /usr/local/src/pgxnclient-1.2.1.tar.gz https://pypi.python.org/packages/source/p/pgxnclient/pgxnclient-1.2.1.tar.gz',
-  creates => '/usr/local/src/pgxnclient-1.2.1.tar.gz',
-  require => Package['wget'],
-}
-
-exec{'extract pgxn client':
-  command => '/bin/tar xzf /usr/local/src/pgxnclient-1.2.1.tar.gz',
-  cwd     => '/usr/local/src',
-  creates => '/usr/local/src/pgxnclient-1.2.1/setup.py',
-  require => Exec['download pgxn client'],
-}
-
-exec{'install pgxn client':
-  command => '/usr/bin/python /usr/local/src/pgxnclient-1.2.1/setup.py build && /usr/bin/python /usr/local/src/pgxnclient-1.2.1/setup.py install',
-  cwd     => '/usr/local/src/pgxnclient-1.2.1',
-  creates => '/usr/local/bin/pgxn',
-  require => [
-    Package['python-setuptools'],
-    Exec['extract pgxn client'],
-  ],
-}
-
-exec{'install pgtap':
-  command => '/usr/local/bin/pgxn install pgtap',
-  creates => '/usr/share/postgresql/9.5/extension/pgtap.control',
-  require => [
-    Exec['install pgxn client'],
-  ],
-}
-
 file{'/home/francois/.config':
   ensure  => directory,
   owner   => 'francois',
