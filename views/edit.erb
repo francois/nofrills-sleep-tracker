@@ -18,6 +18,11 @@
 
       <label>End at
         <input type="text" name="local_end_at" value="<%= @event.fetch(:local_end_at).strftime("%Y-%m-%d %H:%M") %>">
+        <% if @error %>
+          <span class="form-error is-visible">
+            End at must be strictly greater than start at
+          </span>
+        <% end %>
       </label>
 
       <label>Sleep type

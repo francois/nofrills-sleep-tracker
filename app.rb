@@ -216,14 +216,26 @@ put %r{\A/me/#{UUID_RE}/#{UUID_RE}} do |user_id, event_id|
   local_start_at = Time.parse(params.fetch("local_start_at"))
   local_end_at   = Time.parse(params.fetch("local_end_at"))
   local_end_at  += 1 if local_start_at == local_end_at
-  # TODO: things that make you go hummm... if local_start_at > local_end_at
+  if local_start_at > local_end_at then
+    @user_id = user_id
+    @error   = true
+    @event   = {
+      event_id: event_id,
+      timezone: tz.name,
+      sleep_type: sleep_type,
+      local_start_at: local_start_at,
+      local_end_at: local_end_at,
+    }
 
-  DB[table_name_from_user_id(user_id)].filter(event_id: event_id).update(
-    timezone: tz.name,
-    sleep_type: sleep_type,
-    start_at: tz.local_to_utc(local_start_at),
-    end_at: tz.local_to_utc(local_end_at))
-  redirect "/me/#{user_id}"
+    erb :edit
+  else
+    DB[table_name_from_user_id(user_id)].filter(event_id: event_id).update(
+      timezone: tz.name,
+      sleep_type: sleep_type,
+      start_at: tz.local_to_utc(local_start_at),
+      end_at: tz.local_to_utc(local_end_at))
+    redirect "/me/#{user_id}"
+  end
 end
 
 delete %r{\A/me/#{UUID_RE}/#{UUID_RE}} do |user_id, event_id|
