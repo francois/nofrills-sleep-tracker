@@ -124,6 +124,9 @@ exec{"download ruby-${ruby_version}":
 } -> file{'/usr/local/bin/gem':
   ensure => link,
   target => "/usr/local/bin/jgem",
+} -> exec{'/usr/local/bin/gem install bundler --no-rdoc --no-ri':
+  cwd     => '/usr/local',
+  creates => '/usr/local/bin/bundle',
 }
 
 file{'/etc/zsh/zshprofile':
