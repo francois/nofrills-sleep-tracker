@@ -211,10 +211,12 @@ get %r{\A/me/#{UUID_RE}/#{UUID_RE}} do |user_id, event_id|
 end
 
 put %r{\A/me/#{UUID_RE}/#{UUID_RE}} do |user_id, event_id|
-  tz       = TZInfo::Timezone.get(params.fetch("timezone"))
-  sleep_type = %w(nap night).detect{|value| value == params.fetch("sleep_type")}
+  tz             = TZInfo::Timezone.get(params.fetch("timezone"))
+  sleep_type     = %w(nap night).detect{|value| value == params.fetch("sleep_type")}
   local_start_at = Time.parse(params.fetch("local_start_at"))
   local_end_at   = Time.parse(params.fetch("local_end_at"))
+  local_end_at  += 1 if local_start_at == local_end_at
+  # TODO: things that make you go hummm... if local_start_at > local_end_at
 
   DB[table_name_from_user_id(user_id)].filter(event_id: event_id).update(
     timezone: tz.name,
