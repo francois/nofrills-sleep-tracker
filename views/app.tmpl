@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="/assets/css/foundation.min.css">
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <link rel="apple-touch-icon" 								 	href="/images/app-icon-60x60.png"/>
+    <link rel="apple-touch-icon" sizes="76x76"   	href="/images/app-icon-76x76.png"/>
+    <link rel="apple-touch-icon" sizes="120x120" 	href="/images/app-icon-120x120.png"/>
+    <link rel="apple-touch-icon" sizes="152x152" 	href="/images/app-icon-152x152.png"/>
+    <title>No Frills Sleep Tracker{{ .HumanStage }}</title>
+    <script type="text/javascript" src="/assets/js/bundle.js"></script>
+    <script type="text/javascript">
+      // copied from https://gist.github.com/kylebarrow/1042026#gistcomment-37145
+      (function(document, navigator, standalone) {
+          // prevents links from apps from oppening in mobile safari
+          // this javascript must be the first script in your <head>
+          if ((standalone in navigator) && navigator[standalone]) {
+              var curnode, location = document.location, stop = /^(a|html)$/i;
+              document.addEventListener('click', function(e) {
+                  curnode = e.target;
+                  while (!(stop).test(curnode.nodeName)) {
+                      curnode = curnode.parentNode;
+                  }
+                  // Conditions to do this only on links to your own app
+                  // if you want all links, use if('href' in curnode) instead.
+                  if('href' in curnode && ( curnode.href.indexOf('http') || ~curnode.href.indexOf(location.host) ) ) {
+                      e.preventDefault();
+                      location.href = curnode.href;
+                  }
+              }, false);
+          }
+      })(document, window.navigator, 'standalone');
+    </script>
+  </head>
+  <body>
+<div class="row">
+  <div class="small-12 medium-4 medium-offset-4 columns">
+    <div id="app"></div>
+  </div>
+</div>
+<script type="text/javascript">
+  if (NoFrillsSleepTracker.isLocalStorageSupported()) {
+    var userId = document.location.pathname.substring(4);
+    var params = document.location.search.
+                  substring(1).
+                  split("&").
+                  map(function(pair) { return pair.split("=") });
+    for(var i = 0; i < params.length; i++) {
+      var param = params[i];
+      if (param[0] === "timezone") NoFrillsSleepTracker.setTimezone(window.localStorage, param[1]);
+    }
+
+    if (false) {
+      // Reset state when the server tells us to do so
+      // Since we don't do 2 phase commit, or use an Ajax request to change the server's state,
+      // we have to wait until the server acknowledges the state change before resetting our
+      // localStorage state.
+      NoFrillsSleepTracker.wakeUp(window.localStorage);
+    }
+
+    NoFrillsSleepTracker.renderApp(document.getElementById("app"), window.localStorage, userId, {{ .Events }});
+  } else {
+    NoFrillsSleepTracker.renderLocalStorageDisabled(document.getElementById("app"));
+  }
+</script>
+
+    {{ if .user_id }}
+      <br><br>
+      <div class="expanded row small-collapse bottom-nav">
+        <div class="small-12 columns">
+          <ul class="menu reverse">
+            <li{{ if .OnApp       }} class="active"{{ end }}><a href="/me/{{ .user_id }}">app</a></li>
+            <li{{ if .OnAnalytics }} class="active"{{ end }}><a href="/me/{{ .user_id }}/analytics">analytics</a></li>
+            <li{{ if .OnSettings  }} class="active"{{ end }}><a href="/me/{{ .user_id }}/settings">settings</a></li>
+          </ul>
+        </div>
+      </div>
+    {{ end }}
+  </body>
+</html>

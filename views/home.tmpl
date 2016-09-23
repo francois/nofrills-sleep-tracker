@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="/assets/css/foundation.min.css">
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <link rel="apple-touch-icon" 								 	href="/images/app-icon-60x60.png"/>
+    <link rel="apple-touch-icon" sizes="76x76"   	href="/images/app-icon-76x76.png"/>
+    <link rel="apple-touch-icon" sizes="120x120" 	href="/images/app-icon-120x120.png"/>
+    <link rel="apple-touch-icon" sizes="152x152" 	href="/images/app-icon-152x152.png"/>
+    <title>No Frills Sleep Tracker{{ .HumanStage }}</title>
+    <script type="text/javascript" src="/assets/js/bundle.js"></script>
+    <script type="text/javascript">
+      // copied from https://gist.github.com/kylebarrow/1042026#gistcomment-37145
+      (function(document, navigator, standalone) {
+          // prevents links from apps from oppening in mobile safari
+          // this javascript must be the first script in your <head>
+          if ((standalone in navigator) && navigator[standalone]) {
+              var curnode, location = document.location, stop = /^(a|html)$/i;
+              document.addEventListener('click', function(e) {
+                  curnode = e.target;
+                  while (!(stop).test(curnode.nodeName)) {
+                      curnode = curnode.parentNode;
+                  }
+                  // Conditions to do this only on links to your own app
+                  // if you want all links, use if('href' in curnode) instead.
+                  if('href' in curnode && ( curnode.href.indexOf('http') || ~curnode.href.indexOf(location.host) ) ) {
+                      e.preventDefault();
+                      location.href = curnode.href;
+                  }
+              }, false);
+          }
+      })(document, window.navigator, 'standalone');
+    </script>
+  </head>
+  <body>
+<div class="row">
+  <div class="small-12 medium-4 medium-offset-4 columns">
+    <h1>No Frills Sleep Tracker</h1>
+    <p>This is the No Frills Sleep Tracker:</p>
+    <dl>
+      <dt>No Tracking!</dt>
+      <dd><p>We do not track you! Your data is saved in the cloud, in a fully anonymized manner. We cannot match a name to a sleep pattern;</p></dd>
+      <dt>No Frills</dt>
+      <dd><p>Track sleep, nothing more, nothing less. Some analytics are included, but you'll have to look elsewhere for deep insights into your data;</p></dd>
+      <dt>No Install / No Hassle</dt>
+      <dd><p>Keep a bookmark, install the app to your home page. The app is so lightweight, it's fast on slower smartphones.</p></dd>
+    </dl>
+    <form method="post" action="/">
+      <label>Current timezone:
+      {{ range .Zones }}
+      {{ end }}
+        <select id="timezone" name="timezone">
+          <option data-offset="420" value="America/Los_Angeles">America - Los Angeles</option>
+          <option data-offset="240" value="America/Montreal">America - Montreal</option>
+          <option data-offset="240" value="America/New_York">America - New York</option>
+          <option data-offset="-60" value="Europe/London">Europe - London</option>
+          <option data-offset="-120" value="Europe/Paris">Europe - Paris</option>
+        </select>
+      </label>
+
+      <button class="button primary" type="submit">Start</button>
+    </form>
+  </div>
+</div>
+<script type="text/javascript">
+var offset = new Date().getTimezoneOffset().toString()
+  , tz = document.getElementById("timezone")
+  , candidates = [];
+for (var child = tz.firstChild; child; child = child.nextSibling) {
+  if (child.nodeName === "OPTION") {
+    if (child.getAttribute("data-offset") === offset) {
+      candidates.push(child);
+    }
+  }
+}
+
+var optgroup = document.createElement("optgroup");
+optgroup.label = "Candidates based on UTC offset";
+for(var i = 0; i < candidates.length; i++) {
+  tz.removeChild(candidates[i]);
+  optgroup.appendChild(candidates[i]);
+}
+
+optgroup.firstChild.selected = true;
+tz.insertBefore(optgroup, tz.firstChild);
+</script>
+
+    {{ if .user_id }}
+      <br><br>
+      <div class="expanded row small-collapse bottom-nav">
+        <div class="small-12 columns">
+          <ul class="menu reverse">
+            <li{{ if .OnApp       }} class="active"{{ end }}><a href="/me/{{ .user_id }}">app</a></li>
+            <li{{ if .OnAnalytics }} class="active"{{ end }}><a href="/me/{{ .user_id }}/analytics">analytics</a></li>
+            <li{{ if .OnSettings  }} class="active"{{ end }}><a href="/me/{{ .user_id }}/settings">settings</a></li>
+          </ul>
+        </div>
+      </div>
+    {{ end }}
+  </body>
+</html>
