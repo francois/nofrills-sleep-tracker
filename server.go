@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx"
 	"github.com/pborman/uuid"
+  "strconv"
 	"net/http"
 	"os"
 	"strings"
@@ -192,6 +193,33 @@ func main() {
 			}
 		}
 	})
+
+	r.POST("/me/:user_id", func(c *gin.Context) {
+		userId := uuid.Parse(c.Param("user_id"))
+		tableName := "events_" + strings.Replace(userId.String(), "-", "_", -1)
+
+		log.WithFields(log.Fields{
+			"user_id":               userId,
+			"connection_pool_stats": pool.Stat(),
+		}).Info("Rendering app")
+
+    unixStartAt, _ := strconv.Atoi(c.PostForm("start_at"))
+    unixEndAt, _ := strconv.Atoi(c.PostForm("end_at"))
+
+    eventId := uuid.New()
+    timezone := c.PostForm("timezone")
+    startAt := time.Unix(unixStartAt, 0)
+    endAt := time.Unix(unixEndAt, 0)
+    sleepType := c.PostForm("sleep_type")
+
+    _, err = pool.Exec("INSERT INTO " + tableName + "(event_id, timezone, start_at, end_at, sleep_type) VALUES (?, ?, ?, ?, ?)", eventId, timeozne, startAt, endAt, sleepType )
+    if err != nil {
+			c.HTML(http.StatusBadRequest, "bad_user_id.tmpl", gin.H{
+				"UserId":     userId,
+				"HumanStage": Stage,
+			})
+    }
+  })
 
 	r.Run() // listen and server on 0.0.0.0:8080
 }
