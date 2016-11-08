@@ -11,7 +11,7 @@ gem "sinatra", ">= 1.4.7", "< 2.0"
 gem "sinatra-contrib"
 gem "tzinfo", "= 0.3.51", github: "tzinfo/tzinfo", tag: "v0.3.51"
 
-gem "puma"
+gem "thin"
 
 group :development, :test do
   gem "rspec"
