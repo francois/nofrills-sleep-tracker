@@ -3,14 +3,15 @@ exec{'/usr/bin/apt-get update':} -> exec{'/usr/bin/apt-get upgrade -y': timeout 
 
 package{[
   'build-essential',
+  'bundler',
   'byobu',
   'daemontools',
   'default-jre',
   'git',
   'heroku-toolbelt',
   'htop',
-  'libpq5',
   'libpq-dev',
+  'libpq5',
   'libreadline-dev',
   'nodejs',
   'ntp',
@@ -19,6 +20,7 @@ package{[
   'postgresql-contrib-9.5',
   'postgresql-server-dev-9.5',
   'python-setuptools',
+  'ruby',
   'unzip',
   'vim-nox',
   'wget',
@@ -49,7 +51,7 @@ ssh_authorized_key{'francois@m481':
 
 file{'/usr/local/bin/edb':
   ensure  => file,
-  mode    => 0775,
+  mode    => '0775',
   content => '#!/bin/sh
 exec bundle exec "${@}"',
 }
@@ -89,7 +91,7 @@ file{'/home/francois/.config':
   ensure  => directory,
   owner   => 'francois',
   group   => 'francois',
-  mode    => 0700,
+  mode    => '0700',
   recurse => true,
 }
 
@@ -104,30 +106,6 @@ exec{'/usr/bin/wget --quiet -O - https://toolbelt.heroku.com/apt/release.key | /
 }
 
 File['/etc/apt/sources.list.d/heroku.list'] -> Exec['/usr/bin/wget --quiet -O - https://toolbelt.heroku.com/apt/release.key | /usr/bin/apt-key add -'] -> Exec['/usr/bin/apt-get update']
-
-
-$ruby_version = '9.1.2.0'
-exec{"download ruby-${ruby_version}":
-  command => "/usr/bin/wget -O /usr/local/src/jruby-bin-${ruby_version}.tar.gz https://s3.amazonaws.com/jruby.org/downloads/${ruby_version}/jruby-bin-${ruby_version}.tar.gz",
-  creates => "/usr/local/src/jruby-bin-${ruby_version}.tar.gz",
-  require => Package['wget'],
-} -> exec{"extract ruby-${ruby_version}":
-  command => "/bin/tar --strip-components 1 -xzf /usr/local/src/jruby-bin-${ruby_version}.tar.gz",
-  cwd     => '/usr/local',
-  creates => "/usr/local/bin/jruby",
-} -> file{'/usr/local/bin/ruby':
-  ensure => link,
-  target => "/usr/local/bin/jruby",
-} -> file{'/usr/local/bin/irb':
-  ensure => link,
-  target => "/usr/local/bin/jirb",
-} -> file{'/usr/local/bin/gem':
-  ensure => link,
-  target => "/usr/local/bin/jgem",
-} -> exec{'/usr/local/bin/gem install bundler --no-rdoc --no-ri':
-  cwd     => '/usr/local',
-  creates => '/usr/local/bin/bundle',
-}
 
 file{'/etc/zsh/zshprofile':
   ensure  => file,
