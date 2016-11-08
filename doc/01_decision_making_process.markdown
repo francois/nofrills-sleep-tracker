@@ -34,10 +34,10 @@ Being unsatisfied with the sleep tracker apps I used previously, I chose to writ
   <p>While I'm testing, I'm fine with Heroku's free dyno that sleeps. Now that I've opened the can of worms and I'm showing the app to other people, I'll pay for a hobby plan, for a month or two. I'll see how that goes.</p>
 </dd>
 
-<dt>Multi-tenant or single user?</dt>
+<dt>Multitenant or single user?</dt>
 <dd>
-  <p>That was a fun decision! Going single user meant that I would be alone to pay for the app's hosting. If I went multi-tenant, I could have a "product" that other people could use, and maybe even donate. In the end, even if I was the sole user, I chose to go multi-tenant, for the learning experience. Designing for other people is different than designing for oneself only.</p>
-  <p>Being multi-tenant did not preclude going single-user: simply hide the instance behind a Basic Auth wall and that's it.</p>
+  <p>That was a fun decision! Going single user meant that I would be alone to pay for the app's hosting. If I went multitenant, I could have a "product" that other people could use, and maybe even donate. In the end, even if I was the sole user, I chose to go multitenant, for the learning experience. Designing for other people is different than designing for oneself only.</p>
+  <p>Being multitenant did not preclude going single-user: simply hide the instance behind a Basic Auth wall and that's it.</p>
 </dd>
 
 <dt>Real notion of a user or fully anonymous?</dt>
